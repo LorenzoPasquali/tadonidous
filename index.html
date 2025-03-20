@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Gastos </title>
+  <style>
+    /* Estilos básicos e responsivos */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2, h3 {
+      text-align: center;
+    }
+    h2.subtitle {
+      font-size: 0.8em;
+      color: #555;
+      margin-top: -10px;
+      margin-bottom: 20px;
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    .input-group label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .input-group input, .input-group select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .tab-buttons {
+      display: flex;
+      margin-bottom: 20px;
+    }
+    .tab-buttons button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: #ddd;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .tab-buttons button.active {
+      background: #007bff;
+      color: #fff;
+    }
+    .button {
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    .button:hover {
+      background: #0056b3;
+    }
+    .expenses-list {
+      margin-top: 20px;
+    }
+    .expense-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 5px;
+    }
+    .category-totals {
+      margin-top: 20px;
+      padding: 10px;
+      background: #eef;
+      border-radius: 4px;
+    }
+    .category-totals p {
+      margin: 5px 0;
+      padding: 5px;
+      border-radius: 4px;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Controle de Gastos</h1>
+    <h2 class="subtitle">made by lolenzo for the best trip with ameinda &lt;3</h2>
+    
+    <!-- Seção para definir o valor total inicial -->
+    <div id="initialTotalSection">
+      <h2>Defina seu valor total</h2>
+      <div class="input-group">
+        <label for="totalValue">Valor Total ($):</label>
+        <input type="number" id="totalValue" placeholder="Digite seu valor total">
+      </div>
+      <button class="button" onclick="setTotal()">Definir Valor Total</button>
+    </div>
+    
+    <!-- Seção de transações (aparece após definir o total) -->
+    <div id="transactionSection" style="display:none;">
+      
+      <!-- Botões de seleção (abas) -->
+      <div class="tab-buttons">
+        <button id="btnGasto" class="active" onclick="showTab('gasto')">Registrar Gasto</button>
+        <button id="btnEntrada" onclick="showTab('entrada')">Registrar Entrada</button>
+      </div>
+      
+      <!-- Formulário de Gasto -->
+      <div id="formGasto">
+        <h2>Adicionar Gasto</h2>
+        <div class="input-group">
+          <label for="expenseDesc">Descrição:</label>
+          <input type="text" id="expenseDesc" placeholder="Descrição do gasto">
+        </div>
+        <div class="input-group">
+          <label for="expenseAmount">Valor do Gasto (R$):</label>
+          <input type="number" id="expenseAmount" placeholder="Digite o valor do gasto">
+        </div>
+        <div class="input-group">
+          <label for="expenseCategory">Categoria:</label>
+          <select id="expenseCategory">
+            <option value="Eletronicos">Eletrônicos</option>
+            <option value="Cosmeticos">Cosméticos</option>
+            <option value="Alimentacao">Alimentação</option>
+            <option value="Vestimenta">Vestimenta</option>
+            <option value="Presentes">Presentes</option>
+            <option value="Aleatorios">Aleatórios</option>
+          </select>
+        </div>
+        <button class="button" onclick="addExpense()">Adicionar Gasto</button>
+      </div>
+      
+      <!-- Formulário de Entrada -->
+      <div id="formEntrada" style="display:none;">
+        <h2>Adicionar Entrada</h2>
+        <div class="input-group">
+          <label for="depositDesc">Descrição (opcional):</label>
+          <input type="text" id="depositDesc" placeholder="Descrição da entrada">
+        </div>
+        <div class="input-group">
+          <label for="depositAmount">Valor da Entrada ($):</label>
+          <input type="number" id="depositAmount" placeholder="Digite o valor da entrada">
+        </div>
+        <button class="button" onclick="addDeposit()">Adicionar Entrada</button>
+      </div>
+      
+      <h2>Saldo Atual: $ <span id="currentBalance"></span></h2>
+      
+      <!-- Totais por categoria (apenas para gastos) -->
+      <div class="category-totals" id="categoryTotals">
+        <!-- O conteúdo será preenchido via JavaScript -->
+      </div>
+      
+      <!-- Histórico de transações -->
+      <div class="expenses-list" id="expensesList">
+        <h3>Histórico de Transações:</h3>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Alterna entre abas de registro
+    function showTab(tab) {
+      if(tab === 'gasto') {
+        document.getElementById('formGasto').style.display = 'block';
+        document.getElementById('formEntrada').style.display = 'none';
+        document.getElementById('btnGasto').classList.add('active');
+        document.getElementById('btnEntrada').classList.remove('active');
+      } else if(tab === 'entrada') {
+        document.getElementById('formGasto').style.display = 'none';
+        document.getElementById('formEntrada').style.display = 'block';
+        document.getElementById('btnEntrada').classList.add('active');
+        document.getElementById('btnGasto').classList.remove('active');
+      }
+    }
+
+    // Formata a data para exibir apenas data, hora e minuto
+    function formatDate(date) {
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    }
+
+    // Retorna a cor de fundo (transparente) conforme a categoria
+    function getCategoryColor(category) {
+      switch(category.toLowerCase()) {
+        case "eletronicos":
+          return "rgba(0, 0, 255, 0.2)";       // Azul
+        case "alimentacao":
+          return "rgba(255, 255, 0, 0.2)";       // Amarelo
+        case "cosmeticos":
+          return "rgba(255, 192, 203, 0.2)";     // Rosa
+        case "vestimenta":
+          return "rgba(0, 128, 0, 0.2)";         // Verde
+        case "presentes":
+          return "rgba(255, 0, 0, 0.2)";         // Vermelho
+        case "aleatorios":
+          return "rgba(128, 0, 128, 0.2)";       // Roxo
+        default:
+          return "transparent";
+      }
+    }
+
+    // Ao carregar a página, verifica se já há dados salvos
+    document.addEventListener("DOMContentLoaded", function() {
+      if(localStorage.getItem('totalAmount')) {
+        document.getElementById('initialTotalSection').style.display = 'none';
+        document.getElementById('transactionSection').style.display = 'block';
+        updateBalance();
+        renderTransactions();
+        updateCategoryTotals();
+      }
+    });
+
+    // Define o valor total inicial e cria o array de transações
+    function setTotal() {
+      var total = parseFloat(document.getElementById('totalValue').value);
+      if(isNaN(total) || total < 0) {
+        alert("Por favor, insira um valor total válido.");
+        return;
+      }
+      localStorage.setItem('totalAmount', total);
+      localStorage.setItem('transactions', JSON.stringify([]));
+      document.getElementById('initialTotalSection').style.display = 'none';
+      document.getElementById('transactionSection').style.display = 'block';
+      updateBalance();
+      updateCategoryTotals();
+    }
+
+    // Adiciona um gasto (subtrai do saldo)
+    function addExpense() {
+      var desc = document.getElementById('expenseDesc').value;
+      var amount = parseFloat(document.getElementById('expenseAmount').value);
+      var category = document.getElementById('expenseCategory').value;
+      
+      if(!desc || isNaN(amount) || amount <= 0) {
+        alert("Por favor, preencha a descrição e um valor válido para o gasto.");
+        return;
+      }
+      
+      var now = new Date();
+      var transaction = { 
+        type: "gasto",
+        description: desc, 
+        amount: amount, 
+        category: category,
+        date: formatDate(now)
+      };
+      
+      var transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+      transactions.push(transaction);
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+
+      // Atualiza o saldo subtraindo o valor do gasto
+      var totalAmount = parseFloat(localStorage.getItem('totalAmount'));
+      totalAmount -= amount;
+      localStorage.setItem('totalAmount', totalAmount);
+
+      updateBalance();
+      renderTransactions();
+      updateCategoryTotals();
+
+      // Limpa os campos de entrada
+      document.getElementById('expenseDesc').value = "";
+      document.getElementById('expenseAmount').value = "";
+    }
+
+    // Adiciona uma entrada (depósito, soma ao saldo)
+    function addDeposit() {
+      var desc = document.getElementById('depositDesc').value || "Entrada";
+      var amount = parseFloat(document.getElementById('depositAmount').value);
+      
+      if(isNaN(amount) || amount <= 0) {
+        alert("Por favor, insira um valor válido para a entrada.");
+        return;
+      }
+      
+      var now = new Date();
+      var transaction = { 
+        type: "entrada",
+        description: desc, 
+        amount: amount,
+        date: formatDate(now)
+      };
+      
+      var transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+      transactions.push(transaction);
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+
+      // Atualiza o saldo somando o valor da entrada
+      var totalAmount = parseFloat(localStorage.getItem('totalAmount'));
+      totalAmount += amount;
+      localStorage.setItem('totalAmount', totalAmount);
+
+      updateBalance();
+      renderTransactions();
+      updateCategoryTotals();
+
+      // Limpa os campos de entrada
+      document.getElementById('depositDesc').value = "";
+      document.getElementById('depositAmount').value = "";
+    }
+
+    // Atualiza a exibição do saldo atual
+    function updateBalance() {
+      var totalAmount = parseFloat(localStorage.getItem('totalAmount'));
+      document.getElementById('currentBalance').innerText = totalAmount.toFixed(2);
+    }
+
+    // Renderiza o histórico de transações (exibindo as mais recentes primeiro)
+    function renderTransactions() {
+      var transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+      var listDiv = document.getElementById('expensesList');
+      listDiv.innerHTML = "<h3>Histórico de Transações:</h3>";
+      
+      if(transactions.length === 0) {
+        listDiv.innerHTML += "<p>Nenhuma transação registrada.</p>";
+        return;
+      }
+      
+      // Exibe as transações em ordem reversa (mais recentes primeiro)
+      transactions.slice().reverse().forEach(function(tx) {
+        var div = document.createElement('div');
+        div.className = 'expense-item';
+        var details = tx.date + " - " + tx.description;
+        if(tx.type === "gasto") {
+          details += " (" + tx.category + ")";
+          div.style.backgroundColor = getCategoryColor(tx.category);
+        } else {
+          details += " (Entrada)";
+        }
+        div.innerHTML = "<span>" + details + "</span><span>$ " + tx.amount.toFixed(2) + "</span>";
+        listDiv.appendChild(div);
+      });
+    }
+
+    // Atualiza e exibe os totais por categoria (apenas para gastos)
+    // Exibe primeiramente o total de gastos e, em seguida, o detalhamento por categoria.
+    function updateCategoryTotals() {
+      var transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+      var totalGastos = 0;
+      var totals = {};
+      var categories = ["Eletronicos", "Cosmeticos", "Alimentacao", "Vestimenta", "Presentes", "Aleatorios"];
+      categories.forEach(function(cat) {
+        totals[cat] = 0;
+      });
+      
+      transactions.forEach(function(tx) {
+        if(tx.type === "gasto") {
+          totalGastos += tx.amount;
+          if(totals.hasOwnProperty(tx.category)) {
+            totals[tx.category] += tx.amount;
+          } else {
+            totals[tx.category] = tx.amount;
+          }
+        }
+      });
+      
+      var categoryTotalsDiv = document.getElementById('categoryTotals');
+      categoryTotalsDiv.innerHTML = "<h3>Total de Gastos: $ " + totalGastos.toFixed(2) + "</h3>";
+      categoryTotalsDiv.innerHTML += "<h3>Gastos por Categoria:</h3>";
+      for (var cat in totals) {
+        categoryTotalsDiv.innerHTML += "<p style='background-color:" + getCategoryColor(cat) + ";'><strong>" + cat + ":</strong> $ " + totals[cat].toFixed(2) + "</p>";
+      }
+    }
+  </script>
+</body>
+</html>
