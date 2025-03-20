@@ -2,7 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Ajuste na meta viewport para evitar zoom automático -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Controle de Gastos </title>
   <style>
     /* Estilos básicos e responsivos */
@@ -36,9 +37,12 @@
       display: block;
       margin-bottom: 5px;
     }
-    .input-group input, .input-group select {
+    /* Define um tamanho mínimo de 16px para os inputs e selects */
+    .input-group input, 
+    .input-group select {
       width: 100%;
       padding: 8px;
+      font-size: 16px;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
@@ -67,6 +71,7 @@
       border-radius: 4px;
       cursor: pointer;
       margin-bottom: 10px;
+      font-size: 16px;
     }
     .button:hover {
       background: #0056b3;
@@ -109,7 +114,7 @@
     <div id="initialTotalSection">
       <h2>Defina seu valor total</h2>
       <div class="input-group">
-        <label for="totalValue">Valor Total ($):</label>
+        <label for="totalValue">Valor Total (R$):</label>
         <input type="number" id="totalValue" placeholder="Digite seu valor total">
       </div>
       <button class="button" onclick="setTotal()">Definir Valor Total</button>
@@ -157,17 +162,17 @@
           <input type="text" id="depositDesc" placeholder="Descrição da entrada">
         </div>
         <div class="input-group">
-          <label for="depositAmount">Valor da Entrada ($):</label>
+          <label for="depositAmount">Valor da Entrada (R$):</label>
           <input type="number" id="depositAmount" placeholder="Digite o valor da entrada">
         </div>
         <button class="button" onclick="addDeposit()">Adicionar Entrada</button>
       </div>
       
-      <h2>Saldo Atual: $ <span id="currentBalance"></span></h2>
+      <h2>Saldo Atual: R$ <span id="currentBalance"></span></h2>
       
       <!-- Totais por categoria (apenas para gastos) -->
       <div class="category-totals" id="categoryTotals">
-        <!-- O conteúdo será preenchido via JavaScript -->
+        <!-- Conteúdo preenchido via JavaScript -->
       </div>
       
       <!-- Histórico de transações -->
@@ -346,7 +351,7 @@
         } else {
           details += " (Entrada)";
         }
-        div.innerHTML = "<span>" + details + "</span><span>$ " + tx.amount.toFixed(2) + "</span>";
+        div.innerHTML = "<span>" + details + "</span><span>R$ " + tx.amount.toFixed(2) + "</span>";
         listDiv.appendChild(div);
       });
     }
@@ -374,10 +379,10 @@
       });
       
       var categoryTotalsDiv = document.getElementById('categoryTotals');
-      categoryTotalsDiv.innerHTML = "<h3>Total de Gastos: $ " + totalGastos.toFixed(2) + "</h3>";
+      categoryTotalsDiv.innerHTML = "<h3>Total de Gastos: R$ " + totalGastos.toFixed(2) + "</h3>";
       categoryTotalsDiv.innerHTML += "<h3>Gastos por Categoria:</h3>";
       for (var cat in totals) {
-        categoryTotalsDiv.innerHTML += "<p style='background-color:" + getCategoryColor(cat) + ";'><strong>" + cat + ":</strong> $ " + totals[cat].toFixed(2) + "</p>";
+        categoryTotalsDiv.innerHTML += "<p style='background-color:" + getCategoryColor(cat) + ";'><strong>" + cat + ":</strong> R$ " + totals[cat].toFixed(2) + "</p>";
       }
     }
   </script>
